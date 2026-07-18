@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora · Налоги автономо Валенсия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6EFE2;
+    --card: #FFFDF8;
+    --ink: #26332E;
+    --ink-soft: #5B6B62;
+    --tile: #1F6E5C;
+    --tile-dark: #144B3F;
+    --tile-pale: #E4EEE9;
+    --orange: #D9772E;
+    --orange-pale: #F7E3CE;
+    --line: #DED0AF;
+    --red: #A8402F;
+    --red-pale: #F3E1DC;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(38,51,46,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding: 28px 16px 60px;
+  }
+  .shell{
+    width:100%;
+    max-width: 560px;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom: 18px;
+    padding: 0 4px;
+  }
+  .brand h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 20px;
+    margin:0;
+    letter-spacing: -0.01em;
+  }
+  .brand span{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: var(--tile-pale);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  /* --- tile progress --- */
+  .tiles{
+    display:flex;
+    gap:6px;
+    margin-bottom: 22px;
+    padding: 0 4px;
+  }
+  .tile-dot{
+    flex:1;
+    height:8px;
+    border-radius: 3px;
+    background: var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .tile-dot::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background: var(--tile);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .35s ease;
+  }
+  .tile-dot.done::after{ transform: scaleX(1); }
+  .tile-dot.current::after{ transform: scaleX(1); background: var(--orange); }
+
+  /* --- card --- */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 26px 26px;
+    box-shadow: 0 1px 0 rgba(38,51,46,0.03);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing: 0.08em;
+    text-transform:uppercase;
+    color: var(--tile-dark);
+    margin: 0 0 8px;
+  }
+  h2.q{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 25px;
+    line-height:1.28;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .hint{
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height:1.5;
+    margin: 0 0 20px;
+  }
+  .field{ margin-bottom: 18px; }
+  .field label{
+    display:block;
+    font-size: 13px;
+    font-weight:600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .field .sub{
+    display:block;
+    font-weight:400;
+    color: var(--ink-soft);
+    font-size:12.5px;
+    margin-top:2px;
+  }
+  input[type=number], input[type=date], input[type=text]{
+    width:100%;
+    padding: 13px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 17px;
+    color: var(--ink);
+    outline:none;
+    transition: border-color .15s;
+  }
+  input[type=date]{ font-family:'Inter', sans-serif; font-size:15px; }
+  input:focus{ border-color: var(--tile); }
+  .suffix-wrap{ position:relative; }
+  .suffix-wrap input{ padding-right:40px; }
+  .suffix{
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    color: var(--ink-soft); font-family:'IBM Plex Mono', monospace; font-size:14px;
+    pointer-events:none;
+  }
+
+  .toggle-row{
+    display:flex; gap:10px;
+  }
+  .toggle-btn{
+    flex:1;
+    padding: 12px 10px;
+    border-radius:10px;
+    border: 1.5px solid var(--line);
+    background:#fff;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor:pointer;
+    text-align:center;
+    transition: all .15s;
+  }
+  .toggle-btn.active{
+    border-color: var(--tile);
+    background: var(--tile-pale);
+    color: var(--tile-dark);
+  }
+  .toggle-btn:hover{ border-color: var(--tile); }
+
+  .info-box{
+    background: var(--orange-pale);
+    border: 1px solid #E9BE93;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height:1.5;
+    color: #6B4319;
+    margin-bottom: 18px;
+  }
+
+  .advanced-toggle{
+    display:flex; align-items:center; gap:8px;
+    background:none; border:none;
+    color: var(--tile-dark);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 13.5px;
+    cursor:pointer;
+    padding: 8px 2px;
+    margin-top: -4px;
+  }
+  .advanced-toggle .arrow{ transition: transform .2s; display:inline-block; }
+  .advanced-toggle.open .arrow{ transform: rotate(90deg); }
+  .advanced-body{ display:none; padding-top: 10px; }
+  .advanced-body.open{ display:block; }
+
+  .nav{
+    display:flex;
+    gap:10px;
+    margin-top: 22px;
+  }
+  .btn{
+    flex:1;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size: 15px;
+    cursor:pointer;
+    transition: transform .1s, opacity .15s;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{ background: var(--tile); color:#fff; }
+  .btn-primary:hover{ background: var(--tile-dark); }
+  .btn-ghost{ background: transparent; color: var(--ink-soft); border:1.5px solid var(--line); flex:0 0 110px; }
+  .btn-ghost:hover{ border-color: var(--ink-soft); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .intro-icon{
+    width:46px; height:46px;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:16px;
+  }
+
+  /* --- receipt --- */
+  .receipt-wrap{ position:relative; }
+  .receipt{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 30px 26px 22px;
+    font-family:'IBM Plex Mono', monospace;
+    position:relative;
+    background-image: repeating-linear-gradient(180deg, transparent 0, transparent 3px, rgba(38,51,46,0.025) 3px, rgba(38,51,46,0.025) 4px);
+  }
+  .receipt::before, .receipt::after{
+    content:'';
+    position:absolute; left:0; right:0; height:10px;
+    background-image: radial-gradient(circle at 8px 5px, var(--paper) 5px, transparent 5.5px);
+    background-size: 16px 10px;
+    background-repeat: repeat-x;
+  }
+  .receipt::before{ top:-5px; }
+  .receipt::after{ bottom:-5px; transform: rotate(180deg); }
+  .r-title{
+    font-family:'Fraunces', serif;
+    font-size: 20px;
+    font-weight:600;
+    text-align:center;
+    margin: 0 0 2px;
+  }
+  .r-sub{
+    text-align:center;
+    font-size:11px;
+    color: var(--ink-soft);
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin-bottom: 18px;
+  }
+  .r-line{
+    display:flex; justify-content:space-between;
+    font-size: 13.5px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+    gap: 10px;
+  }
+  .r-line span:first-child{ color: var(--ink-soft); }
+  .r-line span:last-child{ font-weight:600; white-space:nowrap; }
+  .r-section{
+    font-size: 11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color: var(--tile-dark);
+    margin: 18px 0 4px;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+  }
+  .r-total{
+    display:flex; justify-content:space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 2px solid var(--ink);
+    font-size: 17px;
+    font-weight:700;
+  }
+  .r-total .val{ font-family:'IBM Plex Mono', monospace; }
+  .r-rate{
+    text-align:center;
+    margin-top:10px;
+    font-size:12px;
+    color: var(--ink-soft);
+  }
+  .warning{
+    background: var(--red-pale);
+    border:1px solid #D8AFA6;
+    color: var(--red);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height:1.5;
+    margin-top: 16px;
+    font-family:'Inter',sans-serif;
+  }
+  .warning.soft{
+    background: var(--orange-pale);
+    border-color:#E9BE93;
+    color:#6B4319;
+  }
+  .result-refund, .result-owe{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-top: 16px;
+    font-family:'Inter',sans-serif;
+  }
+  .result-refund{ background:#E4F1EA; border:1px solid #A9CFBB; }
+  .result-owe{ background:#F7E3CE; border:1px solid #E9BE93; }
+  .result-label{ font-weight:700; font-size:14px; color:var(--ink); }
+  .result-refund .result-value{ color:#1B6B45; }
+  .result-owe .result-value{ color:#8A4E17; }
+  .result-value{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:19px; }
+  .note-list{
+    margin-top: 18px;
+    font-family:'Inter',sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+  .restart{
+    display:block;
+    width:100%;
+    text-align:center;
+    margin-top: 16px;
+    background:none;
+    border:1.5px solid var(--line);
+    color: var(--ink-soft);
+    padding: 12px;
+    border-radius: 10px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .restart:hover{ border-color: var(--tile); color: var(--tile-dark); }
+
+  .footer-note{
+    text-align:center;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 22px;
+    line-height:1.6;
+    padding: 0 10px;
+  }
+
+  @media (max-width:420px){
+    .card{ padding: 22px 18px 20px; }
+    h2.q{ font-size: 21px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand">
+    <h1>Impuestos&nbsp;autónomo</h1>
+    <span>C.&nbsp;Valenciana</span>
+  </div>
+  <div class="tiles" id="tiles"></div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">Ориентировочный расчёт по данным AEAT, Seguridad Social и Generalitat Valenciana. Не заменяет официальную декларацию Renta.</div>
+</div>
+
+<script>
+/* =========================================================
+   CALCULATION ENGINE (ported 1:1 from the verified xlsx model)
+   ========================================================= */
+const SS_TABLE = [
+  [0, 653.59],[670.01, 718.95],[900.01, 849.67],[1166.70, 950.98],
+  [1300.01, 960.78],[1500.01, 960.78],[1700.01, 1143.79],[1850.01, 1209.15],
+  [2030.01, 1274.51],[2330.01, 1356.21],[2760.01, 1437.91],[3190.01, 1519.61],
+  [3620.01, 1601.31],[4050.01, 1732.03],[6000.01, 1928.10],
+];
+const CHILD_MIN = [
+  [0,0,0],[1,2400,2640],[2,5100,5610],[3,9100,10010],
+  [4,13600,14960],[5,18100,19910],[6,22600,24860],
+];
+const PERSONAL_MIN_STATE = 5550, PERSONAL_MIN_CV = 6105;
+const CHILD_U3_STATE = 2800, CHILD_U3_CV = 3080;
+const JOINT_REDUCTION = 3400, GDJ_LIMIT = 2000;
+
+function vlookupApprox(value, table, col){
+  let result = table[0][col];
+  for(const row of table){ if(value >= row[0]) result = row[col]; else break; }
+  return result;
+}
+function escalaEstatal(base){
+  if(base<=12450) return base*0.095;
+  if(base<=20200) return 1182.75+(base-12450)*0.12;
+  if(base<=35200) return 2112.75+(base-20200)*0.15;
+  if(base<=60000) return 4362.75+(base-35200)*0.185;
+  if(base<=300000) return 8950.75+(base-60000)*0.225;
+  return 62950.75+(base-300000)*0.245;
+}
+function escalaCV(base){
+  if(base<=12000) return base*0.09;
+  if(base<=22000) return 1080+(base-12000)*0.12;
+  if(base<=32000) return 2280+(base-22000)*0.15;
+  return 3780+(base-32000)*0.175;
+}
+function escalaAhorro(base){
+  // Base del ahorro: escala combinada (estatal+autonómica), igual en toda España, 2025
+  if(base<=6000) return base*0.19;
+  if(base<=50000) return 1140+(base-6000)*0.21;
+  if(base<=200000) return 10380+(base-50000)*0.23;
+  if(base<=300000) return 44880+(base-200000)*0.27;
+  return 71880+(base-300000)*0.30;
+}
+function round2(x){ return Math.round(x*100)/100; }
+function addMonths(d, n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
+
+function calculate(inp){
+  const year = inp.year;
+  const smi = year===2025 ? 16576 : 17094; // 2026: предварительно, официально пока не подтверждено
+  const ssRate = year===2025 ? 0.314 : 0.315;
+  const tarifaPlanaMonthly = year===2025 ? 87.60 : 88.64;
+
+  let altaMonth;
+  if(inp.altaDate){ const d=new Date(inp.altaDate); altaMonth=new Date(d.getFullYear(), d.getMonth(),1); }
+  else { altaMonth = new Date(year,0,1); }
+  const bonusMonthsLimit = inp.extendTarifaPlana ? 24 : 12;
+  const bonusEnd = addMonths(altaMonth, bonusMonthsLimit);
+
+  let activeMonths=0, bonusMonthsCount=0;
+  for(let m=0;m<12;m++){
+    const monthDate = new Date(year,m,1);
+    const active = monthDate >= altaMonth;
+    const bonus = inp.tarifaPlana && monthDate>=altaMonth && monthDate<bonusEnd;
+    if(active) activeMonths++;
+    if(bonus) bonusMonthsCount++;
+  }
+
+  const monthlyNet = Math.max(0,(inp.income-inp.expenses))*0.93/12;
+  const baseMin = vlookupApprox(monthlyNet, SS_TABLE, 1);
+  const normalMonthlyQuota = baseMin*ssRate;
+  const normalMonths = activeMonths - bonusMonthsCount;
+  const estimatedAnnualSS = bonusMonthsCount*tarifaPlanaMonthly + normalMonths*normalMonthlyQuota;
+  const annualSS = (inp.actualSSPaid && inp.actualSSPaid>0) ? inp.actualSSPaid : estimatedAnnualSS;
+
+  const diferencia = inp.income - inp.expenses - annualSS - inp.insurance;
+  const gdj5 = Math.min(Math.max(0,diferencia)*0.05, GDJ_LIMIT);
+  const rendimientoNeto = diferencia - gdj5;
+
+  const red3223 = round2(
+    rendimientoNeto<=8000 ? 1620 :
+    rendimientoNeto<=12000 ? 1620-(rendimientoNeto-8000)*0.405 : 0
+  );
+  const red323 = round2(inp.discount20 ? 0.2*Math.min(Math.max(0,rendimientoNeto-red3223),100000) : 0);
+  const otrasRentas = (inp.otherIncome||0) + (inp.preAltaIncome||0);
+  const reduccionConjunta = inp.joint ? Math.min(JOINT_REDUCTION, Math.max(0, rendimientoNeto-red3223-red323+otrasRentas)) : 0;
+  const blg = Math.max(0, rendimientoNeto-red3223-red323+otrasRentas-reduccionConjunta);
+
+  const childShare = inp.childShare;
+  const numChildren = Math.min(inp.numChildren,6);
+  const cm = CHILD_MIN.find(r=>r[0]===numChildren) || CHILD_MIN[0];
+  const minEstatal = PERSONAL_MIN_STATE + cm[1]*childShare + inp.childrenUnder3*CHILD_U3_STATE*childShare;
+  const minCV = PERSONAL_MIN_CV + cm[2]*childShare + inp.childrenUnder3*CHILD_U3_CV*childShare;
+
+  const cuotaEstBruta = round2(escalaEstatal(blg));
+  const cuotaCVBruta = round2(escalaCV(blg));
+  const minorEst = round2(escalaEstatal(Math.min(minEstatal,blg)));
+  const minorCV = round2(escalaCV(Math.min(minCV,blg)));
+  const cuotaEstLiquida = cuotaEstBruta-minorEst;
+  const cuotaCVLiquida = cuotaCVBruta-minorCV;
+
+  // Base del ahorro (dividendos, intereses, venta de acciones/inmuebles) — escala separada, no se mezcla con BLG
+  const savingsBase = Math.max(0, inp.savingsIncome||0);
+  const cuotaAhorro = round2(escalaAhorro(savingsBase));
+  // Los límites de renta de las deducciones valencianas se miden sobre BLG + base del ahorro
+  const combinedBase = blg + savingsBase;
+
+  const rentLimit = inp.joint?47000:30000;
+  const rentPct = inp.rentUnder35?0.25:0.20;
+  const rentCap = inp.rentUnder35?950:800;
+  const dedRent = combinedBase<=rentLimit ? Math.min(inp.rentAmount*rentPct, rentCap) : 0;
+  const sportLimit = inp.joint?78000:60000;
+  const dedSport = combinedBase<=sportLimit ? Math.min(inp.sportAmount*0.3,150) : 0;
+
+  // Family deductions use the official 27.000 € / 44.000 € threshold (individual/joint)
+  const familyLimit = inp.joint ? 44000 : 27000;
+  const familyOk = combinedBase <= familyLimit;
+  const dedBirth = familyOk ? (inp.birthChildrenCount||0) * 300 : 0;
+  const dedGuarderia = familyOk ? Math.min((inp.guarderiaAmount||0)*0.15, 297*Math.max(inp.childrenUnder3,0)) : 0;
+  const dedSchool = familyOk ? (inp.schoolChildrenCount||0) * 110 : 0;
+  const dedFamilyStatus = familyOk ? (inp.familyStatus==='general' ? 330 : inp.familyStatus==='especial' ? 660 : 0) : 0;
+
+  const dedOther = inp.otherDeductions||0;
+  const totalDed = Math.min(dedRent+dedSport+dedBirth+dedGuarderia+dedSchool+dedFamilyStatus+dedOther, cuotaCVLiquida);
+
+  const irpfFinal = cuotaEstLiquida + Math.max(0, cuotaCVLiquida-totalDed) + cuotaAhorro;
+  const pagoAnticipado = round2(Math.max(0,rendimientoNeto)*0.2);
+  const irpfPaidAdvance = (inp.actualIRPFPaid && inp.actualIRPFPaid>0) ? inp.actualIRPFPaid : pagoAnticipado;
+  const irpfPaidIsEstimate = !(inp.actualIRPFPaid && inp.actualIRPFPaid>0);
+  const irpfDiff = round2(irpfFinal - irpfPaidAdvance); // + = доплата, − = возврат
+  const totalSS = annualSS;
+  const totalTax = totalSS+irpfFinal;
+  const totalIncomeForRate = inp.income + Math.max(0,(inp.otherIncome||0)) + Math.max(0,(inp.preAltaIncome||0)) + savingsBase;
+  const effectiveRate = totalIncomeForRate>0 ? totalTax/totalIncomeForRate : 0;
+
+  const rendimientoAjustado = round2((rendimientoNeto+annualSS)*0.93);
+  const bracketWarning = combinedBase>42000;
+  let smiWarning = null;
+  if(inp.extendTarifaPlana){
+    if(rendimientoAjustado>=smi) smiWarning='danger';
+    else if(rendimientoNeto>=smi && rendimientoAjustado<smi) smiWarning='info';
+  }
+  // Regularización general del RETA (provisional vs. real) — solo aplica fuera de tarifa plana,
+  // porque durante la tarifa plana la cuota reducida no se regulariza por este motivo.
+  const regEstimated = normalMonthlyQuota*12;
+  const ssPaidExplicit = inp.actualSSPaid && inp.actualSSPaid>0;
+  const regDiff = (!inp.tarifaPlana && ssPaidExplicit) ? Math.max(0, regEstimated-annualSS) : 0;
+
+  const familyInputsGiven = (inp.birthChildrenCount>0 || inp.guarderiaAmount>0 || inp.schoolChildrenCount>0 || (inp.familyStatus && inp.familyStatus!=='none'));
+  const familyDeductionsBlocked = familyInputsGiven && !familyOk;
+
+  return { year, smi, annualSS, ssPaidExplicit, estimatedAnnualSS, rendimientoNeto, blg, minEstatal, minCV,
+    savingsBase, cuotaAhorro, combinedBase,
+    cuotaEstLiquida, cuotaCVLiquida, totalDed, irpfFinal, pagoAnticipado, irpfPaidAdvance, irpfPaidIsEstimate, irpfDiff,
+    totalSS, totalTax, effectiveRate, rendimientoAjustado, bracketWarning, smiWarning, tarifaPlana: inp.tarifaPlana,
+    regEstimated, regDiff, red3223, red323, reduccionConjunta, familyLimit, familyDeductionsBlocked };
+}
+
+/* =========================================================
+   WIZARD STATE + STEPS
+   ========================================================= */
+const state = {
+  year: 2025,
+  income: null,
+  expenses: null,
+  insurance: 0,
+  numChildren: 0,
+  childrenUnder3: 0,
+  joint: false,
+  otherIncome: 0,
+  savingsIncome: 0,
+  isBeginner: false,
+  tarifaPlana: false,
+  altaDate: '',
+  extendTarifaPlana: false,
+  discount20: false,
+  preAltaIncome: 0,
+  childShare: 1,
+  rentAmount: 0,
+  rentUnder35: false,
+  sportAmount: 0,
+  birthChildrenCount: 0,
+  guarderiaAmount: 0,
+  schoolChildrenCount: 0,
+  familyStatus: 'none',
+  otherDeductions: 0,
+  actualSSPaid: 0,
+  actualIRPFPaid: 0,
+};
+
+const fmt = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n) + ' €';
+const fmtPct = n => (n*100).toFixed(1).replace('.',',') + ' %';
+
+let stepIndex = 0;
+let steps = [];
+
+function buildSteps(){
+  steps = [
+    stepIntro(),
+    stepBasics(),
+    stepFamily(),
+    stepBeginner(),
+    stepDeductions(),
+    stepSS(),
+    stepResult(),
+  ];
+}
+
+function goto(i){
+  stepIndex = Math.max(0, Math.min(steps.length-1, i));
+  render();
+}
+function next(){ if(validateCurrent()) goto(stepIndex+1); }
+function back(){ goto(stepIndex-1); }
+function restart(){
+  Object.assign(state, {
+    year:2025, income:null, expenses:null, insurance:0, numChildren:0, childrenUnder3:0,
+    joint:false, otherIncome:0, savingsIncome:0, isBeginner:false, tarifaPlana:false, altaDate:'',
+    extendTarifaPlana:false, discount20:false, preAltaIncome:0, childShare:1, rentAmount:0, rentUnder35:false,
+    sportAmount:0, birthChildrenCount:0, guarderiaAmount:0, schoolChildrenCount:0, familyStatus:'none',
+    otherDeductions:0, actualSSPaid:0, actualIRPFPaid:0,
+  });
+  goto(0);
+}
+
+function validateCurrent(){
+  const s = steps[stepIndex];
+  return s.validate ? s.validate() : true;
+}
+
+/* ---------- render helpers ---------- */
+function field(label, sub, inputHtml){
+  return `<div class="field"><label>${label}${sub?`<span class="sub">${sub}</span>`:''}</label>${inputHtml}</div>`;
+}
+function numberInput(id, value, placeholder){
+  return `<div class="suffix-wrap"><input type="number" id="${id}" value="${value===null||value===undefined?'':value}" placeholder="${placeholder||'0'}" inputmode="decimal" step="0.01"><span class="suffix">€</span></div>`;
+}
+function toggleRow(id, value, yesLabel, noLabel){
+  return `<div class="toggle-row" id="${id}">
+    <button type="button" class="toggle-btn ${value?'active':''}" data-val="1">${yesLabel||'Да'}</button>
+    <button type="button" class="toggle-btn ${!value?'active':''}" data-val="0">${noLabel||'Нет'}</button>
+  </div>`;
+}
+function bindToggle(id, onChange){
+  const wrap = document.getElementById(id);
+  wrap.querySelectorAll('.toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      wrap.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn.dataset.val==='1');
+    });
+  });
+}
+function bindAdvToggle(btnId, bodyId){
+  const btn = document.getElementById(btnId);
+  const body = document.getElementById(bodyId);
+  if(!btn || !body) return;
+  btn.addEventListener('click', ()=>{
+    btn.classList.toggle('open');
+    body.classList.toggle('open');
+  });
+}
+
+/* ---------- steps ---------- */
+function stepIntro(){
+  return {
+    render(){
+      return `
+        <p class="eyebrow">Шаг 0 из 6</p>
+        <h2 class="q">Посчитаем, сколько вы заплатите налогов за год</h2>
+        <p class="hint">Несколько простых вопросов — доход, расходы, семья. В конце — понятная сумма: сколько уйдёт в Seguridad Social и сколько в Hacienda (IRPF). Это оценка для планирования, не официальная декларация.</p>
+        <div class="nav">
+          <button class="btn btn-primary" style="flex:1" onclick="next()">Начать →</button>
+        </div>
+      `;
+    }
+  };
+}
+
+function stepBasics(){
+  return {
+    validate(){
+      const income = parseFloat(document.getElementById('f-income').value);
+      const expenses = parseFloat(document.getElementById('f-expenses').value);
+      if(isNaN(income) || income<=0){ flash('f-income'); return false; }
+      if(isNaN(expenses) || expenses<0){ flash('f-expenses'); return false; }
+      state.income = income;
+      state.expenses = expenses;
+      state.insurance = parseFloat(document.getElementById('f-insurance').value)||0;
+      return true;
+    },
+    render(){
+      return `
+        <p class="eyebrow">Шаг 1 из 6 · Основное</p>
+        <h2 class="q">Доходы и расходы за год</h2>
+        <p class="hint">Все суммы — без НДС (IVA). Год расчёта нужен для верной ставки соцстраха.</p>
+        <div class="field">
+          <label>Год расчёта</label>
+          <div class="toggle-row" id="f-year">
+            <button type="button" class="toggle-btn ${state.year===2025?'active':''}" data-val="2025">2025</button>
+            <button type="button" class="toggle-btn ${state.year===2026?'active':''}" data-val="2026">2026</button>
+          </div>
+        </div>
+        ${field('Годовой доход', 'Всё, что выставили клиентам за год, без IVA', numberInput('f-income', state.income))}
+        ${field('Расходы за год', 'Тоже без IVA. Без соцстраха и мед. страховки — их спросим отдельно', numberInput('f-expenses', state.expenses))}
+        ${field('Мед. страховка (частная)', 'Именно частная страховка — не гос. медицина. Максимум 500 €/чел. Если нет — оставьте 0', numberInput('f-insurance', state.insurance))}
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="next()">Далее →</button>
+        </div>
+      `;
+    },
+    afterRender(){
+      document.querySelectorAll('#f-year .toggle-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('#f-year .toggle-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          state.year = parseInt(btn.dataset.val);
+        });
+      });
+    }
+  };
+}
+
+function stepFamily(){
+  return {
+    validate(){
+      state.numChildren = parseInt(document.getElementById('f-children').value)||0;
+      state.childrenUnder3 = Math.min(parseInt(document.getElementById('f-children3').value)||0, state.numChildren);
+      state.otherIncome = parseFloat(document.getElementById('f-otherincome').value)||0;
+      state.savingsIncome = parseFloat(document.getElementById('f-savingsincome').value)||0;
+      return true;
+    },
+    render(){
+      const showShare = state.numChildren>0;
+      return `
+        <p class="eyebrow">Шаг 2 из 6 · Семья</p>
+        <h2 class="q">Дети и тип декларации</h2>
+        <p class="hint">Это влияет на необлагаемый минимум — часть дохода, с которой налог вообще не считается.</p>
+        <div class="field">
+          <label>Совместная декларация с супругом(-ой)?</label>
+          ${toggleRow('f-joint', state.joint)}
+        </div>
+        <div class="field">
+          <label>Количество детей на иждивении<span class="sub">Ребёнку не должно исполниться 25 лет на 31 декабря — то есть считаются дети младше 25 (24-летний ещё считается, 25-летний уже нет). Плюс: живут с вами и зарабатывают не больше 8 000 €/год</span></label>
+          <input type="number" id="f-children" value="${state.numChildren}" min="0" max="6" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Из них младше 3 лет</label>
+          <input type="number" id="f-children3" value="${state.childrenUnder3}" min="0" inputmode="numeric">
+        </div>
+        <div id="share-field" style="display:${showShare?'block':'none'}">
+          <div class="field">
+            <label>Ваша доля вычета на детей</label>
+            <div class="toggle-row" id="f-share">
+              <button type="button" class="toggle-btn ${state.childShare===1?'active':''}" data-val="1">Полностью (100%)</button>
+              <button type="button" class="toggle-btn ${state.childShare===0.5?'active':''}" data-val="0.5">Пополам (50%)</button>
+            </div>
+            <button type="button" class="advanced-toggle" id="adv-toggle-share"><span class="arrow">›</span> Какую долю указать в моём случае?</button>
+            <div class="advanced-body" id="adv-body-share">
+              <div class="info-box">
+                <b>100%</b> — совместная декларация (доходы супругов объединены в одной декларации). Неважно, работают оба или только один — раз декларация одна, минимум применяется в ней полностью, один раз. Например: муж и жена подают одну совместную декларацию — 100%, даже если работают оба.<br><br>
+                <b>100% (но у одного из двоих)</b> — родители разведены, опека закреплена только за одним из них. Например: ребёнок живёт с женой, опека только у неё — у жены 100%, у мужа 0%.<br><br>
+                <b>50%</b> — оба родителя декларируются отдельно, и оба имеют право на минимум по этому ребёнку. Например: муж и жена работают, декларации раздельные, ребёнок живёт с обоими (в браке) или опека совместная (после развода) — у каждого по 50%.
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="advanced-toggle" id="adv-toggle-other"><span class="arrow">›</span> Есть доход помимо деятельности (аренда, акции, дивиденды)?</button>
+        <div class="advanced-body" id="adv-body-other">
+          ${field('Аренда / вменённый доход с недвижимости', 'Сдаёте квартиру или у вас есть пустующая недвижимость в собственности. Облагается той же шкалой, что и доход автономо. Если нет — 0', numberInput('f-otherincome', state.otherIncome))}
+          ${field('Доход от сбережений (дивиденды, проценты, продажа акций/крипты/имущества)', 'Облагается отдельной шкалой 19–30%, не смешивается с доходом автономо. Если нет — 0', numberInput('f-savingsincome', state.savingsIncome))}
+        </div>
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="next()">Далее →</button>
+        </div>
+      `;
+    },
+    afterRender(){
+      bindToggle('f-joint', v=>{
+        state.joint = v;
+        if(v) state.childShare = 1;
+        document.getElementById('f-share') && renderShareButtons();
+      });
+      const childInput = document.getElementById('f-children');
+      childInput.addEventListener('input', ()=>{
+        document.getElementById('share-field').style.display = (parseInt(childInput.value)||0)>0 ? 'block' : 'none';
+      });
+      const shareWrap = document.getElementById('f-share');
+      if(shareWrap){
+        shareWrap.querySelectorAll('.toggle-btn').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            shareWrap.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            state.childShare = parseFloat(btn.dataset.val);
+          });
+        });
+      }
+      function renderShareButtons(){
+        const wrap = document.getElementById('f-share');
+        wrap.querySelectorAll('.toggle-btn').forEach(b=>{
+          b.classList.toggle('active', parseFloat(b.dataset.val)===state.childShare);
+        });
+      }
+      bindAdvToggle('adv-toggle-share','adv-body-share');
+      bindAdvToggle('adv-toggle-other','adv-body-other');
+    }
+  };
+}
+
+function stepBeginner(){
+  return {
+    validate(){
+      state.discount20 = document.getElementById('f-discount20') ? readToggle('f-discount20') : false;
+      state.preAltaIncome = parseFloat(document.getElementById('f-prealta-income').value)||0;
+      return true;
+    },
+    render(){
+      return `
+        <p class="eyebrow">Шаг 3 из 6 · Начало деятельности</p>
+        <h2 class="q">Вы зарегистрировались как автономо недавно?</h2>
+        <p class="hint">Если да — есть льготная квота соцстраха (tarifa plana) и налоговая скидка за первый год. Если вы автономо уже больше 2 лет — просто пропустите этот шаг.</p>
+        <div class="field">
+          <label>Открыли автономо недавно (в этом или прошлом году)?</label>
+          ${toggleRow('f-beginner', state.isBeginner)}
+        </div>
+        <div id="beginner-body" style="display:${state.isBeginner?'block':'none'}">
+          <div class="field">
+            <label>Дата регистрации (alta)</label>
+            <input type="date" id="f-altadate" value="${state.altaDate}">
+          </div>
+          <div class="field">
+            <label>Применяете льготную квоту (tarifa plana)?<span class="sub">Фиксированная низкая квота соцстраха первые 12 месяцев</span></label>
+            ${toggleRow('f-tarifaplana', state.tarifaPlana)}
+          </div>
+          <div class="field">
+            <label>Продлили tarifa plana на второй год?</label>
+            ${toggleRow('f-extend', state.extendTarifaPlana)}
+          </div>
+          <div class="info-box">Продление даётся только если чистый доход ниже SMI. Если по факту доход окажется выше — Seguridad Social доначислит разницу. Мы это проверим в итоге.</div>
+          <div class="field">
+            <label>Скидка 20% за начало деятельности (ст. 32.3 LIRPF)?<span class="sub">Даётся на 2 года: первый прибыльный год и следующий за ним (не только на первый). Условие: в год перед регистрацией вы не были автономо и не вели другую экономическую деятельность</span></label>
+            ${toggleRow('f-discount20', state.discount20)}
+          </div>
+          <div class="field">
+            <label>Доход ДО открытия автономо в этом же году<span class="sub">Например, зарплата или доход в другой стране до переезда — актуально, если вы стали налоговым резидентом Испании в этом году. Без вычета налога, уже уплаченного за границей — прибавьте фактическую доплату вручную, если знаете сумму</span></label>
+            ${numberInput('f-prealta-income', state.preAltaIncome)}
+          </div>
+        </div>
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="next()">Далее →</button>
+        </div>
+      `;
+    },
+    afterRender(){
+      bindToggle('f-beginner', v=>{
+        state.isBeginner = v;
+        document.getElementById('beginner-body').style.display = v?'block':'none';
+        if(!v){ state.tarifaPlana=false; state.extendTarifaPlana=false; state.discount20=false; }
+      });
+      document.getElementById('f-altadate').addEventListener('input', e=>{ state.altaDate = e.target.value; });
+      if(document.getElementById('f-tarifaplana')) bindToggle('f-tarifaplana', v=>state.tarifaPlana=v);
+      if(document.getElementById('f-extend')) bindToggle('f-extend', v=>state.extendTarifaPlana=v);
+      if(document.getElementById('f-discount20')) bindToggle('f-discount20', v=>state.discount20=v);
+    }
+  };
+}
+function readToggle(id){
+  const wrap = document.getElementById(id);
+  const active = wrap.querySelector('.toggle-btn.active');
+  return active ? active.dataset.val==='1' : false;
+}
+
+function stepDeductions(){
+  return {
+    render(){
+      const familyStatus = state.familyStatus || 'none';
+      return `
+        <p class="eyebrow">Шаг 4 из 6 · Дополнительные вычеты</p>
+        <h2 class="q">Аренда, спорт и вычеты для семей с детьми</h2>
+        <p class="hint">Необязательный шаг — если ничего из этого не касается вас, просто нажмите «Далее». Эти вычеты работают только если ваша налоговая база не выше 27 000 € (одна декларация) или 44 000 € (совместная) — для большинства фрилансеров это так.</p>
+        <div class="field">
+          <label>Аренда жилья за год</label>
+          ${numberInput('f-rent', state.rentAmount)}
+        </div>
+        <div class="field">
+          <label>Вам ≤ 35 лет, ИЛИ есть инвалидность, ИЛИ вы жертва гендерного насилия / терроризма?<span class="sub">Достаточно любого одного условия. Повышает вычет за аренду до 25% / 950 €</span></label>
+          ${toggleRow('f-rentyoung', state.rentUnder35)}
+        </div>
+        <div class="field">
+          <label>Расходы на спорт / здоровье за год</label>
+          ${numberInput('f-sport', state.sportAmount)}
+        </div>
+
+        ${state.numChildren>0 ? `
+        <p class="eyebrow" style="margin-top:22px;">Семейные вычеты Валенсии</p>
+        <div class="field">
+          <label>Дети, родившиеся/усыновлённые в этом году или 2 предыдущих<span class="sub">300 € за каждого — действует в год рождения и 2 следующих</span></label>
+          <input type="number" id="f-birth-children" value="${state.birthChildrenCount||0}" min="0" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Расходы на ясли / guardería (детям до 3 лет)<span class="sub">15%, максимум 297 € на каждого ребёнка до 3 лет. Услуги яслей обычно освобождены от IVA — указывайте сумму, как в квитанции, отдельно вычитать IVA не нужно</span></label>
+          ${numberInput('f-guarderia', state.guarderiaAmount)}
+        </div>
+        <div class="field">
+          <label>Дети школьного возраста (начальная/средняя школа)<span class="sub">Это фиксированные 110 € за каждого ребёнка — не сумма расходов, а именно количество детей. Вопрос IVA тут не применим</span></label>
+          <input type="number" id="f-school-children" value="${state.schoolChildrenCount||0}" min="0" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Статус многодетной или неполной семьи (título oficial)?</label>
+          <div class="toggle-row" id="f-familystatus">
+            <button type="button" class="toggle-btn ${familyStatus==='none'?'active':''}" data-val="none">Нет</button>
+            <button type="button" class="toggle-btn ${familyStatus==='general'?'active':''}" data-val="general">Общая (330 €)</button>
+            <button type="button" class="toggle-btn ${familyStatus==='especial'?'active':''}" data-val="especial">Особая (660 €)</button>
+          </div>
+        </div>
+        ` : `
+        <input type="hidden" id="f-birth-children" value="0">
+        <input type="hidden" id="f-guarderia" value="0">
+        <input type="hidden" id="f-school-children" value="0">
+        <div class="toggle-row" id="f-familystatus" style="display:none">
+          <button type="button" class="toggle-btn active" data-val="none">Нет</button>
+        </div>
+        `}
+
+        <div class="field" style="margin-top:18px;">
+          <label>Прочие вычеты Валенсии<span class="sub">Донативос, энергоэффективность, электромобиль и т.п. — сумма, если уже посчитали сами</span></label>
+          ${numberInput('f-other-ded', state.otherDeductions)}
+        </div>
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="next()">Далее →</button>
+        </div>
+      `;
+    },
+    validate(){
+      state.rentAmount = parseFloat(document.getElementById('f-rent').value)||0;
+      state.sportAmount = parseFloat(document.getElementById('f-sport').value)||0;
+      state.birthChildrenCount = parseInt(document.getElementById('f-birth-children').value)||0;
+      state.guarderiaAmount = parseFloat(document.getElementById('f-guarderia').value)||0;
+      state.schoolChildrenCount = parseInt(document.getElementById('f-school-children').value)||0;
+      state.otherDeductions = parseFloat(document.getElementById('f-other-ded').value)||0;
+      return true;
+    },
+    afterRender(){
+      bindToggle('f-rentyoung', v=>state.rentUnder35=v);
+      const famWrap = document.getElementById('f-familystatus');
+      famWrap.querySelectorAll('.toggle-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          famWrap.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          state.familyStatus = btn.dataset.val;
+        });
+      });
+    }
+  };
+}
+
+function stepSS(){
+  return {
+    render(){
+      return `
+        <p class="eyebrow">Шаг 5 из 6 · Что вы уже заплатили</p>
+        <h2 class="q">Сколько вы уже перечислили государству за год</h2>
+        <p class="hint">Речь именно о взносах в Seguridad Social и авансовых платежах по IRPF — не о расходах бизнеса. Не знаете точно — оставьте поле пустым, посчитаем сами.</p>
+        <div class="field">
+          <label>Seguridad Social (соцстрах, взносы автономо) — уплачено за год<span class="sub">Ежемесячная квота × количество месяцев. Пусто — возьмём расчётную сумму</span></label>
+          ${numberInput('f-actualss', state.actualSSPaid||'')}
+        </div>
+        <div class="field">
+          <label>IRPF авансом (retenciones + pagos fraccionados, модель 130) — уплачено за год<span class="sub">Пусто — оценим как 20% от чистого дохода</span></label>
+          ${numberInput('f-actualirpf', state.actualIRPFPaid||'')}
+        </div>
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="next()">Показать результат →</button>
+        </div>
+      `;
+    },
+    validate(){
+      state.actualSSPaid = parseFloat(document.getElementById('f-actualss').value)||0;
+      state.actualIRPFPaid = parseFloat(document.getElementById('f-actualirpf').value)||0;
+      return true;
+    }
+  };
+}
+
+function stepResult(){
+  return {
+    render(){
+      const r = calculate(state);
+      let warnings = '';
+      if(r.bracketWarning){
+        warnings += `<div class="warning">⚠ Ваша налоговая база выше 42 000 € — за пределами точно проверенной части шкалы Валенсии. Цифры приблизительны, для точного расчёта — Renta WEB или gestor.</div>`;
+      }
+      if(r.smiWarning==='danger'){
+        warnings += `<div class="warning"><b>⚠ Продление льготной квоты (tarifa plana) под угрозой.</b><br>Ваш скорректированный доход для Seguridad Social — ${fmt(r.rendimientoAjustado)}, это выше порога SMI (${fmt(r.smi)}). Соцстрах может отменить продление и <b>доначислить разницу задним числом за весь год</b>.</div>`;
+      } else if(r.smiWarning==='info'){
+        warnings += `<div class="warning soft">ℹ Чистый доход по IRPF выше SMI, но с поправкой Seguridad Social (+уплаченные взносы ×0,93) — уже ниже. По методике соцстраха продление формально проходит.</div>`;
+      }
+      if(r.regDiff>1){
+        warnings += `<div class="warning"><b>⚠ Вероятная доплата в Seguridad Social ≈ ${fmt(r.regDiff)}.</b><br>Ваш реальный доход требует более высокой квоты (${fmt(r.regEstimated)}/год), чем вы фактически платили (${fmt(r.annualSS)}/год). При ежегодной регуляризации RETA сверяет базу с доходом и досчитывает разницу.</div>`;
+      }
+      if(r.familyDeductionsBlocked){
+        warnings += `<div class="warning soft">ℹ Вы указали семейные вычеты (рождение/ясли/школа/многодетная), но ваша база для лимита (BLG + доход от сбережений = ${fmt(r.combinedBase)}) выше порога ${fmt(r.familyLimit)} — по правилам Валенсии эти вычеты в вашем случае не применяются, поэтому в расчёт они не попали.</div>`;
+      }
+      return `
+        <p class="eyebrow">Готово</p>
+        <h2 class="q" style="margin-bottom:18px;">Ваш расчёт за ${r.year} год</h2>
+        <div class="receipt-wrap">
+          <div class="receipt">
+            <div class="r-title">ИТОГОВЫЙ РАСЧЁТ</div>
+            <div class="r-sub">Автономо · Comunitat Valenciana · ${r.year}</div>
+
+            <div class="r-section">Seguridad Social</div>
+            <div class="r-line"><span>Расчётный взнос за год</span><span>${fmt(r.estimatedAnnualSS)}</span></div>
+            <div class="r-line"><span>Уплачено фактически</span><span>${r.ssPaidExplicit ? fmt(r.annualSS) : fmt(r.annualSS)+' (оценка)'}</span></div>
+
+            <div class="r-section">IRPF</div>
+            ${r.reduccionConjunta>0?`<div class="r-line"><span>Вычет за совместную декларацию</span><span>−${fmt(r.reduccionConjunta)}</span></div>`:''}
+            <div class="r-line"><span>Налоговая база (BLG)</span><span>${fmt(r.blg)}</span></div>
+            ${r.savingsBase>0?`<div class="r-line"><span>Доход от сбережений (отд. шкала 19–30%)</span><span>${fmt(r.cuotaAhorro)}</span></div>`:''}
+            ${r.totalDed>0?`<div class="r-line"><span>Вычеты Валенсии</span><span>−${fmt(r.totalDed)}</span></div>`:''}
+            <div class="r-line"><span>Расчётный IRPF за год</span><span>${fmt(r.irpfFinal)}</span></div>
+            <div class="r-line"><span>Уплачено авансом${r.irpfPaidIsEstimate?' (оценка 20%)':''}</span><span>${fmt(r.irpfPaidAdvance)}</span></div>
+
+            <div class="r-total"><span>Итого налогов+взносов за год</span><span class="val">${fmt(r.totalTax)}</span></div>
+            <div class="r-rate">эффективная ставка: ${fmtPct(r.effectiveRate)} от общего дохода</div>
+          </div>
+        </div>
+        <div class="${r.irpfDiff>=0?'result-owe':'result-refund'}">
+          <span class="result-label">${r.irpfDiff>=0?'Доплатите в Hacienda':'Вернёт налоговая'}</span>
+          <span class="result-value">${fmt(Math.abs(r.irpfDiff))}</span>
+        </div>
+        ${warnings}
+        <div class="nav">
+          <button class="btn btn-ghost" onclick="back()">← Назад</button>
+          <button class="btn btn-primary" onclick="restart()">↺ Посчитать заново</button>
+        </div>
+      `;
+    }
+  };
+}
+
+function flash(id){
+  const el = document.getElementById(id) || document.querySelector(`#${id}`);
+  if(!el) return;
+  el.style.borderColor = 'var(--red)';
+  el.focus();
+  setTimeout(()=>{ el.style.borderColor=''; }, 1200);
+}
+
+/* ---------- main render ---------- */
+function render(){
+  const card = document.getElementById('card');
+  const s = steps[stepIndex];
+  card.innerHTML = s.render();
+  if(s.afterRender) s.afterRender();
+  renderTiles();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function renderTiles(){
+  const tiles = document.getElementById('tiles');
+  const total = steps.length - 1; // exclude intro from dots count visually? keep all for simplicity
+  tiles.innerHTML = steps.map((_,i)=>{
+    let cls = '';
+    if(i < stepIndex) cls = 'done';
+    else if(i === stepIndex) cls = 'current';
+    return `<div class="tile-dot ${cls}"></div>`;
+  }).join('');
+}
+
+buildSteps();
+render();
+</script>
+</body>
+</html>
